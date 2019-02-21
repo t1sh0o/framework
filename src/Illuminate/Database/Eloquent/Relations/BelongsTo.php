@@ -355,4 +355,24 @@ class BelongsTo extends Relation
     {
         return $this->relation;
     }
+
+    /**
+     * Alias method for getQualifiedOwnerKeyName used in automatic joins
+     *
+     * @return string
+     */
+    public function getQualifiedForeignKeyName()
+    {
+        return $this->getQualifiedOwnerKeyName();
+    }
+
+    /**
+     * Alias method for getQualifiedForeignKey used in automatic joins
+     *
+     * @return string
+     */
+    public function getQualifiedParentKeyName()
+    {
+        return $this->getQualifiedForeignKey();
+    }
 }

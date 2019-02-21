@@ -13,6 +13,8 @@ use Illuminate\Support\Traits\ForwardsCalls;
 use Illuminate\Database\Concerns\BuildsQueries;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property-read HigherOrderBuilderProxy $orWhere
@@ -1245,6 +1247,64 @@ class Builder
     public function getModel()
     {
         return $this->model;
+    }
+
+    /**
+     * Add a join clause to the query.
+     *
+     * @param  string  $table
+     * @param  \Closure|string|null  $first
+     * @param  string|null  $operator
+     * @param  string|null  $second
+     * @param  string  $type
+     * @param  bool    $where
+     * @return $this
+     */
+    public function join($table, $first = null, $operator = null, $second = null, $type = 'inner', $where = false)
+    {
+        if ($first) {
+            return $this->query->join(...func_get_args());
+        }
+
+        if (! $this->hasDefinedRelation($table)) {
+            throw new \ArgumentCountError("Too few arguments to function Illuminate\Database\Query\Builder::join()");
+        }
+
+        $relation = $this->getModel()->{$table}();
+
+        return $this->query->join(
+            $relation->getRelated()->getTable(),
+            $relation->getQualifiedParentKeyName(),
+            $relation->getQualifiedForeignKeyName()
+        );
+    }
+
+    /**
+     * Checks if has such relation defined
+     *
+     * @param string $relation
+     * @return boolean
+     */
+    protected function hasDefinedRelation($relation)
+    {
+        if (! method_exists($this->getModel(), $relation)) {
+            return false;
+        }
+
+        $result = $this->getModel()->{$relation}();
+
+        return $this->isJoinSupportedRelation($result) ? $result : false;
+    }
+
+    /**
+     * Checks if the arguments is one of the supported types of relations for joining
+     *
+     * @param mixed $relation
+     * @return boolean
+     */
+    protected function isJoinSupportedRelation($relation)
+    {
+        return $relation instanceof HasOneOrMany || $relation instanceof BelongsTo;
     }
 
     /**
