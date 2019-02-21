@@ -12,7 +12,7 @@ class EloquentJoinTest extends DatabaseTestCase
     /** @test */
     public function testJoinOnHasMany()
     {
-        $query = User::join('posts');
+        $query = JoinUser::join('posts');
 
         $this->assertEquals(
             'select * from "users" inner join "posts" on "users"."id" = "posts"."user_id"',
@@ -23,7 +23,7 @@ class EloquentJoinTest extends DatabaseTestCase
     /** @test */
     public function testJoinOnHasOne()
     {
-        $query = User::join('topPost');
+        $query = JoinUser::join('topPost');
 
         $this->assertEquals(
             'select * from "users" inner join "posts" on "users"."id" = "posts"."user_id"',
@@ -34,7 +34,7 @@ class EloquentJoinTest extends DatabaseTestCase
     /** @test */
     public function testJoinOnBelongsTo()
     {
-        $query = Post::join('author');
+        $query = JoinPost::join('author');
 
         $this->assertEquals(
             'select * from "posts" inner join "users" on "posts"."user_id" = "users"."id"',
@@ -45,7 +45,7 @@ class EloquentJoinTest extends DatabaseTestCase
     /** @test */
     public function testJoinWorksAsBeforeWhenMoreArgsPassed()
     {
-        $query = User::join('posts', 'users.name', '=', 'posts.username');
+        $query = JoinUser::join('posts', 'users.name', '=', 'posts.username');
 
         $this->assertEquals(
             'select * from "users" inner join "posts" on "users"."name" = "posts"."username"',
@@ -57,7 +57,7 @@ class EloquentJoinTest extends DatabaseTestCase
     public function testJoinThrowsExceptionWhenNoSuchRelationAndOnlyOneArgPassed()
     {
         try {
-            User::join('authoredPosts');
+            JoinUser::join('authoredPosts');
             $this->fail('ArgumentCountError should have been thrown');
         } catch (\ArgumentCountError $e) {
             $this->assertContains('join', $e->getMessage());
@@ -65,27 +65,27 @@ class EloquentJoinTest extends DatabaseTestCase
     }
 }
 
-class User extends Model
+class JoinUser extends Model
 {
     protected $table = 'users';
 
     public function posts()
     {
-        return $this->hasMany(Post::class);
+        return $this->hasMany(JoinPost::class, 'user_id');
     }
 
     public function topPost()
     {
-        return $this->hasOne(Post::class);
+        return $this->hasOne(JoinPost::class, 'user_id');
     }
 }
 
-class Post extends Model
+class JoinPost extends Model
 {
     protected $table = 'posts';
 
     public function author()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(JoinUser::class, 'user_id');
     }
 }
